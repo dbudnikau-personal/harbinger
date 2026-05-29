@@ -1,4 +1,4 @@
-package com.harbinger.llm;
+package com.harbinger.domain;
 
 public class SecretLeakException extends RuntimeException {
 
