@@ -19,11 +19,6 @@ class FallbackAgent implements AgentPort {
     }
 
     @Override
-    public boolean supports(String query) {
-        return true;
-    }
-
-    @Override
     public AgentResponse handle(String query) {
         return new AgentResponse(llm.chat(SYSTEM_PROMPT, query), GENERAL);
     }

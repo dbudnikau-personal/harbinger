@@ -18,15 +18,9 @@ class JuntoAgent extends ProjectAgent {
     ) {
         super(llm, contextLoader);
         this.resolvedProject = new Project(
-            "junto-app", path,
-            "Spring Cloud microservices app with Keycloak, Kafka, GCP GKE"
+                "junto-app", path,
+                "Spring Cloud microservices app with Keycloak, Kafka, GCP GKE"
         );
-    }
-
-    @Override
-    public boolean supports(String query) {
-        String lower = query.toLowerCase();
-        return lower.contains("junto") || lower.contains("keycloak") || lower.contains("kafka");
     }
 
     @Override

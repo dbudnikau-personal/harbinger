@@ -18,15 +18,9 @@ class HrVacancyAgent extends ProjectAgent {
     ) {
         super(llm, contextLoader);
         this.resolvedProject = new Project(
-            "hr-vacancy-bot-aws", path,
-            "AWS Lambda bot for HR vacancy scraping with Playwright and DeepSeek"
+                "hr-vacancy-bot-aws", path,
+                "AWS Lambda bot for HR vacancy scraping with Playwright and DeepSeek"
         );
-    }
-
-    @Override
-    public boolean supports(String query) {
-        String lower = query.toLowerCase();
-        return lower.contains("hr") || lower.contains("vacancy") || lower.contains("aws lambda");
     }
 
     @Override
