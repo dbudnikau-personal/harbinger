@@ -33,8 +33,5 @@ abstract class ProjectAgent implements AgentPort {
     }
 
     @Override
-    public abstract boolean supports(String query);
-
-    @Override
     public abstract Project project();
 }

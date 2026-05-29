@@ -21,12 +21,6 @@ class HermesAgent extends ProjectAgent {
     }
 
     @Override
-    public boolean supports(String query) {
-        String lower = query.toLowerCase();
-        return lower.contains("hermes") || lower.contains("telegram") || lower.contains("bot");
-    }
-
-    @Override
     public Project project() {
         return resolvedProject;
     }

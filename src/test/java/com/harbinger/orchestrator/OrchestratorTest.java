@@ -22,55 +22,57 @@ class OrchestratorTest {
     private static final Project GENERAL = new Project("general", "", "General assistant");
 
     @Mock
-    private AgentPort matchingAgent;
-
-    @Mock
-    private AgentPort nonMatchingAgent;
+    private AgentPort projectAgent;
 
     @Mock
     private FallbackAgent fallbackAgent;
+
+    @Mock
+    private LlmRouter router;
 
     @Test
     void shouldRouteToMatchingAgent() {
         String query = "How does api-meter track usage?";
         AgentResponse expected = new AgentResponse("It tracks via REST API", API_METER);
 
-        when(matchingAgent.supports(query)).thenReturn(true);
-        when(matchingAgent.handle(query)).thenReturn(expected);
+        when(projectAgent.project()).thenReturn(API_METER);
+        when(router.route(query, List.of(projectAgent))).thenReturn("api-meter");
+        when(projectAgent.handle(query)).thenReturn(expected);
 
-        Orchestrator orchestrator = new Orchestrator(List.of(matchingAgent), fallbackAgent);
+        Orchestrator orchestrator = new Orchestrator(List.of(projectAgent), fallbackAgent, router);
         AgentResponse result = orchestrator.dispatch(query);
 
         assertEquals(expected, result);
-        verify(matchingAgent).handle(query);
+        verify(projectAgent).handle(query);
         verifyNoInteractions(fallbackAgent);
     }
 
     @Test
-    void shouldSkipNonMatchingAgentAndRouteToMatching() {
-        String query = "Tell me about hermes bot";
-        AgentResponse expected = new AgentResponse("Hermes is a Telegram bot", API_METER);
-
-        when(nonMatchingAgent.supports(query)).thenReturn(false);
-        when(matchingAgent.supports(query)).thenReturn(true);
-        when(matchingAgent.handle(query)).thenReturn(expected);
-
-        Orchestrator orchestrator = new Orchestrator(List.of(nonMatchingAgent, matchingAgent), fallbackAgent);
-        AgentResponse result = orchestrator.dispatch(query);
-
-        assertEquals(expected, result);
-        verifyNoInteractions(fallbackAgent);
-    }
-
-    @Test
-    void shouldFallbackWhenNoAgentMatches() {
+    void shouldFallbackWhenRouterReturnsGeneral() {
         String query = "What is the weather today?";
         AgentResponse fallbackResponse = new AgentResponse("I don't know the weather", GENERAL);
 
-        when(nonMatchingAgent.supports(query)).thenReturn(false);
+        when(projectAgent.project()).thenReturn(API_METER);
+        when(router.route(query, List.of(projectAgent))).thenReturn("general");
         when(fallbackAgent.handle(query)).thenReturn(fallbackResponse);
 
-        Orchestrator orchestrator = new Orchestrator(List.of(nonMatchingAgent), fallbackAgent);
+        Orchestrator orchestrator = new Orchestrator(List.of(projectAgent), fallbackAgent, router);
+        AgentResponse result = orchestrator.dispatch(query);
+
+        assertEquals(fallbackResponse, result);
+        verify(fallbackAgent).handle(query);
+    }
+
+    @Test
+    void shouldFallbackWhenRouterReturnsUnknownProject() {
+        String query = "Something completely unrelated";
+        AgentResponse fallbackResponse = new AgentResponse("Here is a general answer", GENERAL);
+
+        when(projectAgent.project()).thenReturn(API_METER);
+        when(router.route(query, List.of(projectAgent))).thenReturn("unknown-project");
+        when(fallbackAgent.handle(query)).thenReturn(fallbackResponse);
+
+        Orchestrator orchestrator = new Orchestrator(List.of(projectAgent), fallbackAgent, router);
         AgentResponse result = orchestrator.dispatch(query);
 
         assertEquals(fallbackResponse, result);

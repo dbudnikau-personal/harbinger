@@ -10,17 +10,20 @@ public class Orchestrator {
 
     private final List<AgentPort> agents;
     private final FallbackAgent fallbackAgent;
+    private final LlmRouter router;
 
-    Orchestrator(List<AgentPort> agents, FallbackAgent fallbackAgent) {
+    Orchestrator(List<AgentPort> agents, FallbackAgent fallbackAgent, LlmRouter router) {
         this.agents = agents;
         this.fallbackAgent = fallbackAgent;
+        this.router = router;
     }
 
     public AgentResponse dispatch(String query) {
+        String projectName = router.route(query, agents);
         return agents.stream()
-            .filter(agent -> agent.supports(query))
-            .findFirst()
-            .orElse(fallbackAgent)
-            .handle(query);
+                .filter(agent -> agent.project().name().equals(projectName))
+                .findFirst()
+                .orElse(fallbackAgent)
+                .handle(query);
     }
 }
