@@ -1,5 +1,6 @@
 package com.harbinger.llm;
 
+import com.harbinger.domain.SecretLeakException;
 import java.util.List;
 import java.util.regex.Pattern;
 import org.springframework.stereotype.Component;
