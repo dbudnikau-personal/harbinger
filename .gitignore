@@ -7,3 +7,4 @@ target/
 *.war
 .env
 application-local.yml
+.claude/
