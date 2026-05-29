@@ -6,15 +6,15 @@ import org.springframework.modulith.docs.Documenter;
 
 class HarbingerApplicationTests {
 
-    static final ApplicationModules modules = ApplicationModules.of(HarbingerApplication.class);
+    static final ApplicationModules MODULES = ApplicationModules.of(HarbingerApplication.class);
 
     @Test
     void modulesShouldBeCompliant() {
-        modules.verify();
+        MODULES.verify();
     }
 
     @Test
     void shouldGenerateDocumentation() {
-        new Documenter(modules).writeDocumentation();
+        new Documenter(MODULES).writeDocumentation();
     }
 }
