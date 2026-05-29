@@ -3,7 +3,9 @@ package com.harbinger.orchestrator;
 import com.harbinger.domain.AgentPort;
 import com.harbinger.domain.AgentResponse;
 import com.harbinger.domain.LlmPort;
+import com.harbinger.domain.Message;
 import com.harbinger.domain.Project;
+import java.util.List;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -19,8 +21,8 @@ class FallbackAgent implements AgentPort {
     }
 
     @Override
-    public AgentResponse handle(String query) {
-        return new AgentResponse(llm.chat(SYSTEM_PROMPT, query), GENERAL);
+    public AgentResponse handle(String query, List<Message> history) {
+        return new AgentResponse(llm.chat(SYSTEM_PROMPT, history, query), GENERAL);
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.harbinger.api;
 import com.harbinger.domain.AgentResponse;
 import com.harbinger.orchestrator.Orchestrator;
 import jakarta.validation.constraints.NotBlank;
+import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,16 +24,21 @@ class ChatController {
 
     @PostMapping
     ResponseEntity<ChatResponse> chat(@RequestBody @Validated ChatRequest request) {
-        AgentResponse response = orchestrator.dispatch(request.message());
+        String conversationId = request.conversationId() != null
+                ? request.conversationId()
+                : UUID.randomUUID().toString();
+
+        AgentResponse response = orchestrator.dispatch(request.message(), conversationId);
         return ResponseEntity.ok(new ChatResponse(
-            response.content(),
-            response.project().name()
+                response.content(),
+                response.project().name(),
+                conversationId
         ));
     }
 
-    record ChatRequest(@NotBlank String message) {
+    record ChatRequest(@NotBlank String message, String conversationId) {
     }
 
-    record ChatResponse(String answer, String handledBy) {
+    record ChatResponse(String answer, String handledBy, String conversationId) {
     }
 }
