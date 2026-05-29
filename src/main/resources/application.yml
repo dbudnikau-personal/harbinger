@@ -29,3 +29,5 @@ harbinger:
       path: ${HARBINGER_PROJECT_JUNTO_PATH:${user.home}/pet-projects/junto-app}
     hr-vacancy-bot-aws:
       path: ${HARBINGER_PROJECT_HR_PATH:${user.home}/pet-projects/hr-vacancy-bot-aws}
+    resume:
+      path: ${HARBINGER_PROJECT_RESUME_PATH:${user.home}/pet-projects/resume}
