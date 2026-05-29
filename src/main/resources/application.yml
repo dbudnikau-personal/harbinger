@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: harbinger
+
+  ai:
+    anthropic:
+      api-key: ${ANTHROPIC_API_KEY}
+      chat:
+        options:
+          model: claude-sonnet-4-6
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      chat:
+        options:
+          model: gpt-4o
+    ollama:
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+      chat:
+        options:
+          model: llama3.2
+
+harbinger:
+  projects:
+    api-meter:
+      path: ${HARBINGER_PROJECT_API_METER_PATH:${user.home}/pet-projects/api-meter}
+    hermes:
+      path: ${HARBINGER_PROJECT_HERMES_PATH:${user.home}/pet-projects/hermes}
+    junto-app:
+      path: ${HARBINGER_PROJECT_JUNTO_PATH:${user.home}/pet-projects/junto-app}
+    hr-vacancy-bot-aws:
+      path: ${HARBINGER_PROJECT_HR_PATH:${user.home}/pet-projects/hr-vacancy-bot-aws}
