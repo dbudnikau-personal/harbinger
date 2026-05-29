@@ -12,9 +12,9 @@ class HermesAgent extends ProjectAgent {
     private final Project resolvedProject;
 
     HermesAgent(
-        LlmPort llm,
-        ProjectContextLoader contextLoader,
-        @Value("${harbinger.projects.hermes.path}") String path
+            LlmPort llm,
+            ProjectContextLoader contextLoader,
+            @Value("${harbinger.projects.hermes.path}") String path
     ) {
         super(llm, contextLoader);
         this.resolvedProject = new Project("hermes", path, "Telegram bot powered by Nous Hermes on GCP");

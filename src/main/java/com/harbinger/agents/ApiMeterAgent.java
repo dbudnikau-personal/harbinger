@@ -10,17 +10,17 @@ import org.springframework.stereotype.Component;
 class ApiMeterAgent extends ProjectAgent {
 
     private static final Project PROJECT = new Project(
-        "api-meter",
-        "${harbinger.projects.api-meter.path}",
-        "REST API for tracking AI model usage across projects"
+            "api-meter",
+            "${harbinger.projects.api-meter.path}",
+            "REST API for tracking AI model usage across projects"
     );
 
     private final Project resolvedProject;
 
     ApiMeterAgent(
-        LlmPort llm,
-        ProjectContextLoader contextLoader,
-        @Value("${harbinger.projects.api-meter.path}") String path
+            LlmPort llm,
+            ProjectContextLoader contextLoader,
+            @Value("${harbinger.projects.api-meter.path}") String path
     ) {
         super(llm, contextLoader);
         this.resolvedProject = new Project("api-meter", path, PROJECT.description());

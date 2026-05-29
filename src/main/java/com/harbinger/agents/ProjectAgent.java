@@ -25,7 +25,7 @@ abstract class ProjectAgent implements AgentPort {
 
     private String buildSystemPrompt(String projectContext) {
         String base = "You are an expert assistant for the " + project().name() + " project. "
-            + project().description();
+                + project().description();
         if (projectContext.isBlank()) {
             return base;
         }
