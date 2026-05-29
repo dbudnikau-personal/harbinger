@@ -1,5 +1,6 @@
 package com.harbinger.orchestrator;
 
+import com.harbinger.audit.AuditLogger;
 import com.harbinger.domain.AgentPort;
 import com.harbinger.domain.AgentResponse;
 import com.harbinger.domain.Project;
@@ -11,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -30,6 +32,9 @@ class OrchestratorTest {
     @Mock
     private LlmRouter router;
 
+    @Mock
+    private AuditLogger auditLogger;
+
     @Test
     void shouldRouteToMatchingAgent() {
         String query = "How does api-meter track usage?";
@@ -39,11 +44,12 @@ class OrchestratorTest {
         when(router.route(query, List.of(projectAgent))).thenReturn("api-meter");
         when(projectAgent.handle(query)).thenReturn(expected);
 
-        Orchestrator orchestrator = new Orchestrator(List.of(projectAgent), fallbackAgent, router);
+        Orchestrator orchestrator = new Orchestrator(List.of(projectAgent), fallbackAgent, router, auditLogger);
         AgentResponse result = orchestrator.dispatch(query);
 
         assertEquals(expected, result);
         verify(projectAgent).handle(query);
+        verify(auditLogger).log(any());
         verifyNoInteractions(fallbackAgent);
     }
 
@@ -56,11 +62,12 @@ class OrchestratorTest {
         when(router.route(query, List.of(projectAgent))).thenReturn("general");
         when(fallbackAgent.handle(query)).thenReturn(fallbackResponse);
 
-        Orchestrator orchestrator = new Orchestrator(List.of(projectAgent), fallbackAgent, router);
+        Orchestrator orchestrator = new Orchestrator(List.of(projectAgent), fallbackAgent, router, auditLogger);
         AgentResponse result = orchestrator.dispatch(query);
 
         assertEquals(fallbackResponse, result);
         verify(fallbackAgent).handle(query);
+        verify(auditLogger).log(any());
     }
 
     @Test
@@ -72,10 +79,11 @@ class OrchestratorTest {
         when(router.route(query, List.of(projectAgent))).thenReturn("unknown-project");
         when(fallbackAgent.handle(query)).thenReturn(fallbackResponse);
 
-        Orchestrator orchestrator = new Orchestrator(List.of(projectAgent), fallbackAgent, router);
+        Orchestrator orchestrator = new Orchestrator(List.of(projectAgent), fallbackAgent, router, auditLogger);
         AgentResponse result = orchestrator.dispatch(query);
 
         assertEquals(fallbackResponse, result);
         verify(fallbackAgent).handle(query);
+        verify(auditLogger).log(any());
     }
 }
