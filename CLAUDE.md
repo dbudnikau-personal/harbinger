@@ -41,6 +41,7 @@ All LLM credentials and project paths via environment variables — never hardco
 | `HARBINGER_PROJECT_HERMES_PATH` | Path to hermes repo |
 | `HARBINGER_PROJECT_JUNTO_PATH` | Path to junto-app repo |
 | `HARBINGER_PROJECT_HR_PATH` | Path to hr-vacancy-bot-aws repo |
+| `HARBINGER_PROJECT_RESUME_PATH` | Path to resume repo |
 
 ## Adding a new project agent
 
