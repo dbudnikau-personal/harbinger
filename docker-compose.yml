@@ -1,0 +1,38 @@
+services:
+  harbinger:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OLLAMA_BASE_URL: http://ollama:11434
+      HARBINGER_PROJECT_API_METER_PATH: /projects/api-meter
+      HARBINGER_PROJECT_HERMES_PATH: /projects/hermes
+      HARBINGER_PROJECT_JUNTO_PATH: /projects/junto-app
+      HARBINGER_PROJECT_HR_PATH: /projects/hr-vacancy-bot-aws
+      HARBINGER_PROJECT_RESUME_PATH: /projects/resume
+    volumes:
+      - ${HOME}/pet-projects/api-meter:/projects/api-meter:ro
+      - ${HOME}/pet-projects/hermes:/projects/hermes:ro
+      - ${HOME}/pet-projects/junto-app:/projects/junto-app:ro
+      - ${HOME}/pet-projects/hr-vacancy-bot-aws:/projects/hr-vacancy-bot-aws:ro
+      - ${HOME}/pet-projects/resume:/projects/resume:ro
+    depends_on:
+      ollama:
+        condition: service_healthy
+
+  ollama:
+    image: ollama/ollama:0.6.8
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  ollama-data:
