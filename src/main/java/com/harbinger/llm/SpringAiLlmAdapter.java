@@ -23,10 +23,10 @@ class SpringAiLlmAdapter implements LlmPort {
         secretsGuard.assertNoSecrets(systemPrompt, sanitizedMessage);
 
         String response = chatClient.prompt()
-            .system(systemPrompt)
-            .user(sanitizedMessage)
-            .call()
-            .content();
+                .system(systemPrompt)
+                .user(sanitizedMessage)
+                .call()
+                .content();
 
         secretsGuard.assertNoSecretsInResponse(response);
         return response;

@@ -12,9 +12,9 @@ class HrVacancyAgent extends ProjectAgent {
     private final Project resolvedProject;
 
     HrVacancyAgent(
-        LlmPort llm,
-        ProjectContextLoader contextLoader,
-        @Value("${harbinger.projects.hr-vacancy-bot-aws.path}") String path
+            LlmPort llm,
+            ProjectContextLoader contextLoader,
+            @Value("${harbinger.projects.hr-vacancy-bot-aws.path}") String path
     ) {
         super(llm, contextLoader);
         this.resolvedProject = new Project(

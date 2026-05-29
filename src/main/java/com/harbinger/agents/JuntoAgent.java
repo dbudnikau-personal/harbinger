@@ -12,9 +12,9 @@ class JuntoAgent extends ProjectAgent {
     private final Project resolvedProject;
 
     JuntoAgent(
-        LlmPort llm,
-        ProjectContextLoader contextLoader,
-        @Value("${harbinger.projects.junto-app.path}") String path
+            LlmPort llm,
+            ProjectContextLoader contextLoader,
+            @Value("${harbinger.projects.junto-app.path}") String path
     ) {
         super(llm, contextLoader);
         this.resolvedProject = new Project(
