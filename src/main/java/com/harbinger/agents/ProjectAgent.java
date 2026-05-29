@@ -4,7 +4,9 @@ import com.harbinger.context.ProjectContextLoader;
 import com.harbinger.domain.AgentPort;
 import com.harbinger.domain.AgentResponse;
 import com.harbinger.domain.LlmPort;
+import com.harbinger.domain.Message;
 import com.harbinger.domain.Project;
+import java.util.List;
 
 abstract class ProjectAgent implements AgentPort {
 
@@ -17,10 +19,10 @@ abstract class ProjectAgent implements AgentPort {
     }
 
     @Override
-    public AgentResponse handle(String query) {
+    public AgentResponse handle(String query, List<Message> history) {
         String context = contextLoader.loadClaudeMd(project()).orElse("");
         String systemPrompt = buildSystemPrompt(context);
-        return new AgentResponse(llm.chat(systemPrompt, query), project());
+        return new AgentResponse(llm.chat(systemPrompt, history, query), project());
     }
 
     private String buildSystemPrompt(String projectContext) {

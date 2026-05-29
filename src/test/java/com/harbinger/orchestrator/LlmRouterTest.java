@@ -3,6 +3,7 @@ package com.harbinger.orchestrator;
 import com.harbinger.domain.AgentPort;
 import com.harbinger.domain.AgentResponse;
 import com.harbinger.domain.LlmPort;
+import com.harbinger.domain.Message;
 import com.harbinger.domain.Project;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -68,7 +69,7 @@ class LlmRouterTest {
     private record StubAgent(String name, String description) implements AgentPort {
 
         @Override
-        public AgentResponse handle(String query) {
+        public AgentResponse handle(String query, List<Message> history) {
             return new AgentResponse("stub", project());
         }
 
