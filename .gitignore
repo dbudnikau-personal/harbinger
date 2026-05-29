@@ -8,3 +8,4 @@ target/
 .env
 application-local.yml
 .claude/
+CLAUDE.md
