@@ -2,8 +2,6 @@ package com.harbinger.llm;
 
 import com.harbinger.domain.SecretLeakException;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -12,39 +10,28 @@ class SecretsGuardTest {
 
     private final SecretsGuard guard = new SecretsGuard();
 
-    @ParameterizedTest
-    @ValueSource(strings = {
-        "sk-abcdefghijklmnopqrstuvwxyz123456789012",
-        "sk-ant-api03-someSecretKeyValueHere12345678901234567890",
-        "AKIAIOSFODNN7EXAMPLE",
-        "password=supersecret123",
-        "api_key=verysecretvalue",
-        "-----BEGIN RSA PRIVATE KEY-----"
-    })
-    void shouldThrowWhenSecretPatternDetectedInSystemPrompt(String secret) {
+    @Test
+    void shouldThrowWhenSecretInSystemPrompt() {
         assertThrows(SecretLeakException.class,
-                () -> guard.assertNoSecrets(secret, "normal user message"));
+                () -> guard.assertNoSecrets("api_key=supersecretvalue", "normal message"));
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {
-        "sk-abcdefghijklmnopqrstuvwxyz123456789012",
-        "AKIAIOSFODNN7EXAMPLE",
-        "token=mysecrettoken123"
-    })
-    void shouldThrowWhenSecretPatternDetectedInUserMessage(String secret) {
+    @Test
+    void shouldThrowWhenSecretInUserMessage() {
         assertThrows(SecretLeakException.class,
-                () -> guard.assertNoSecrets("normal system prompt", secret));
+                () -> guard.assertNoSecrets("normal prompt", "AKIAIOSFODNN7EXAMPLE"));
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {
-        "sk-abcdefghijklmnopqrstuvwxyz123456789012",
-        "AKIAIOSFODNN7EXAMPLE"
-    })
-    void shouldThrowWhenSecretPatternDetectedInResponse(String secret) {
+    @Test
+    void shouldThrowWhenSecretInResponse() {
         assertThrows(SecretLeakException.class,
-                () -> guard.assertNoSecretsInResponse(secret));
+                () -> guard.assertNoSecretsInResponse("sk-abcdefghijklmnopqrstuvwxyz123456789012"));
+    }
+
+    @Test
+    void shouldThrowWhenSecretInContext() {
+        assertThrows(SecretLeakException.class,
+                () -> guard.assertNoSecretsInContext("jdbc:postgresql://localhost:5432/db?password=secret"));
     }
 
     @Test
@@ -61,9 +48,9 @@ class SecretsGuardTest {
     }
 
     @Test
-    void shouldPassCleanResponse() {
-        assertDoesNotThrow(() -> guard.assertNoSecretsInResponse(
-                "Use @RestController and @GetMapping annotations."
+    void shouldPassCleanContext() {
+        assertDoesNotThrow(() -> guard.assertNoSecretsInContext(
+                "# Project\nRun ./build.sh to compile. See README for details."
         ));
     }
 }

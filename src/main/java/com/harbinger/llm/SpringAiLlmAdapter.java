@@ -27,7 +27,7 @@ class SpringAiLlmAdapter implements LlmPort {
         secretsGuard.assertNoSecrets(systemPrompt, sanitizedMessage);
 
         List<org.springframework.ai.chat.messages.Message> springAiHistory = history.stream()
-                .map(this::toSpringAiMessage)
+                .map(m -> sanitizeAndConvert(m))
                 .toList();
 
         String response = chatClient.prompt()
@@ -41,11 +41,12 @@ class SpringAiLlmAdapter implements LlmPort {
         return response;
     }
 
-    private org.springframework.ai.chat.messages.Message toSpringAiMessage(Message message) {
+    private org.springframework.ai.chat.messages.Message sanitizeAndConvert(Message message) {
+        String sanitized = inputSanitizer.sanitize(message.content());
         return switch (message.role()) {
-            case USER -> new UserMessage(message.content());
-            case ASSISTANT -> new AssistantMessage(message.content());
-            case SYSTEM -> new org.springframework.ai.chat.messages.SystemMessage(message.content());
+            case USER -> new UserMessage(sanitized);
+            case ASSISTANT -> new AssistantMessage(sanitized);
+            case SYSTEM -> new org.springframework.ai.chat.messages.SystemMessage(sanitized);
         };
     }
 }
