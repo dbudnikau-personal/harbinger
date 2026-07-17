@@ -5,6 +5,7 @@ services:
       - "8080:8080"
     environment:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      HARBINGER_API_KEY: ${HARBINGER_API_KEY:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OLLAMA_BASE_URL: http://ollama:11434
       HARBINGER_PROJECT_API_METER_PATH: /projects/api-meter

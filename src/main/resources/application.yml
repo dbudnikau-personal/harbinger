@@ -26,6 +26,8 @@ springdoc:
     path: /api-docs
 
 harbinger:
+  security:
+    api-key: ${HARBINGER_API_KEY:}
   projects:
     api-meter:
       path: ${HARBINGER_PROJECT_API_METER_PATH:${user.home}/pet-projects/api-meter}
