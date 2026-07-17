@@ -7,6 +7,7 @@ import com.harbinger.domain.LlmPort;
 import com.harbinger.domain.Message;
 import com.harbinger.domain.Project;
 import java.util.List;
+import java.util.function.Consumer;
 
 abstract class ProjectAgent implements AgentPort {
 
@@ -23,6 +24,18 @@ abstract class ProjectAgent implements AgentPort {
         String context = contextLoader.loadClaudeMd(project()).orElse("");
         String systemPrompt = buildSystemPrompt(context);
         return new AgentResponse(llm.chat(systemPrompt, history, query), project());
+    }
+
+    @Override
+    public AgentResponse handleStream(String query, List<Message> history, Consumer<String> onChunk) {
+        String context = contextLoader.loadClaudeMd(project()).orElse("");
+        String systemPrompt = buildSystemPrompt(context);
+        StringBuilder answer = new StringBuilder();
+        llm.chatStream(systemPrompt, history, query, chunk -> {
+            answer.append(chunk);
+            onChunk.accept(chunk);
+        });
+        return new AgentResponse(answer.toString(), project());
     }
 
     private String buildSystemPrompt(String projectContext) {
