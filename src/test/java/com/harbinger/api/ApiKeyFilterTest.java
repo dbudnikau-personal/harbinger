@@ -1,5 +1,6 @@
 package com.harbinger.api;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import java.io.IOException;
 import org.junit.jupiter.api.Test;
@@ -17,7 +18,7 @@ class ApiKeyFilterTest {
     private static final String VALID_KEY = "test-api-key";
     private static final String PROTECTED_PATH = "/api/v1/chat";
 
-    private final ApiKeyFilter filter = new ApiKeyFilter(VALID_KEY);
+    private final ApiKeyFilter filter = new ApiKeyFilter(VALID_KEY, new ObjectMapper());
 
     @Test
     void shouldPassChainWithValidKey() throws ServletException, IOException {
@@ -60,6 +61,7 @@ class ApiKeyFilterTest {
                 "/api-docs", "/v3/api-docs", "/actuator/health"}) {
             MockHttpServletRequest request = new MockHttpServletRequest("GET", path);
             request.setRequestURI(path);
+            request.setServletPath(path);
             MockHttpServletResponse response = new MockHttpServletResponse();
             MockFilterChain chain = new MockFilterChain();
 
@@ -71,8 +73,23 @@ class ApiKeyFilterTest {
     }
 
     @Test
+    void shouldMatchOnDecodedPathNotRawUri() throws ServletException, IOException {
+        // /%61pi/v1/chat decodes to /api/v1/chat: the container decodes servletPath while
+        // the raw request URI keeps the encoding — the filter must still protect the request.
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", PROTECTED_PATH);
+        request.setRequestURI("/%61pi/v1/chat");
+        request.setServletPath(PROTECTED_PATH);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        MockFilterChain chain = new MockFilterChain();
+
+        filter.doFilter(request, response, chain);
+
+        assertUnauthorized(response, chain);
+    }
+
+    @Test
     void shouldRejectWhenKeyUnconfigured() throws ServletException, IOException {
-        ApiKeyFilter unconfigured = new ApiKeyFilter("");
+        ApiKeyFilter unconfigured = new ApiKeyFilter("", new ObjectMapper());
         MockHttpServletRequest request = protectedRequest();
         request.addHeader(ApiKeyFilter.API_KEY_HEADER, "");
         MockHttpServletResponse response = new MockHttpServletResponse();
@@ -86,6 +103,7 @@ class ApiKeyFilterTest {
     private static MockHttpServletRequest protectedRequest() {
         MockHttpServletRequest request = new MockHttpServletRequest("POST", PROTECTED_PATH);
         request.setRequestURI(PROTECTED_PATH);
+        request.setServletPath(PROTECTED_PATH);
         return request;
     }
 
@@ -93,7 +111,7 @@ class ApiKeyFilterTest {
             throws IOException {
         assertNull(chain.getRequest(), "request must not reach the chain");
         assertEquals(401, response.getStatus());
-        assertTrue(response.getContentAsString().contains("message"),
-                "401 body follows the error shape");
+        assertTrue(response.getContentAsString().contains("\"message\":\"Invalid or missing API key\""),
+                "401 body follows the ErrorResponse shape");
     }
 }

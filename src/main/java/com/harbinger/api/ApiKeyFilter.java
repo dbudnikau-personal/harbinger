@@ -1,10 +1,13 @@
 package com.harbinger.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import org.slf4j.Logger;
@@ -34,10 +37,13 @@ class ApiKeyFilter extends OncePerRequestFilter {
 
     private final byte[] apiKey;
     private final boolean configured;
+    private final String unauthorizedBody;
 
-    ApiKeyFilter(@Value("${harbinger.security.api-key:}") String apiKey) {
+    ApiKeyFilter(@Value("${harbinger.security.api-key:}") String apiKey, ObjectMapper objectMapper) {
         this.apiKey = apiKey.getBytes(StandardCharsets.UTF_8);
         this.configured = !apiKey.isBlank();
+        this.unauthorizedBody = serialize(objectMapper,
+                new ApiExceptionHandler.ErrorResponse("Invalid or missing API key"));
         if (!configured) {
             LOG.warn("HARBINGER_API_KEY is not set — all /api/** requests will be rejected with 401");
         }
@@ -45,7 +51,12 @@ class ApiKeyFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return !request.getRequestURI().startsWith(PROTECTED_PREFIX);
+        // servletPath + pathInfo is container-decoded, normalized and context-path-relative —
+        // matching on the raw getRequestURI() would let an encoded path (/%61pi/...) or a
+        // non-root context-path bypass auth. Assumes the default DispatcherServlet "/" mapping.
+        String pathInfo = request.getPathInfo();
+        String path = request.getServletPath() + (pathInfo != null ? pathInfo : "");
+        return !path.startsWith(PROTECTED_PREFIX);
     }
 
     @Override
@@ -58,7 +69,16 @@ class ApiKeyFilter extends OncePerRequestFilter {
             return;
         }
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.getWriter().write("{\"message\":\"Invalid or missing API key\"}");
+        response.getWriter().write(unauthorizedBody);
+    }
+
+    private static String serialize(ObjectMapper objectMapper, ApiExceptionHandler.ErrorResponse body) {
+        try {
+            return objectMapper.writeValueAsString(body);
+        } catch (JsonProcessingException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }
