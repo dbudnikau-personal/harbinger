@@ -6,7 +6,10 @@ import com.harbinger.conversation.ConversationStore;
 import com.harbinger.domain.AgentPort;
 import com.harbinger.domain.AgentResponse;
 import com.harbinger.domain.Message;
+import com.harbinger.domain.SecretLeakException;
+import com.harbinger.domain.SecretPatternMatcher;
 import java.util.List;
+import java.util.function.Consumer;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -58,5 +61,42 @@ public class Orchestrator {
         ));
 
         return response;
+    }
+
+    public AgentResponse dispatchStream(String query, String conversationId, Consumer<String> onChunk) {
+        String projectName = router.route(query, agents);
+        AgentPort agent = agents.stream()
+                .filter(a -> a.project().name().equals(projectName))
+                .findFirst()
+                .orElse(fallbackAgent);
+        List<Message> history = conversationStore.get(conversationId);
+        StringBuilder answer = new StringBuilder();
+        long start = System.currentTimeMillis();
+
+        AgentResponse response = agent.handleStream(query, history, chunk -> {
+            assertNoSecrets(chunk, answer);
+            answer.append(chunk);
+            onChunk.accept(chunk);
+        });
+        long latencyMs = System.currentTimeMillis() - start;
+
+        conversationStore.append(
+                conversationId,
+                new Message(Message.Role.USER, query),
+                new Message(Message.Role.ASSISTANT, answer.toString())
+        );
+        auditLogger.log(AgentInvocationEvent.of(
+                agent.getClass().getSimpleName(),
+                response.project().name(),
+                latencyMs
+        ));
+        return new AgentResponse(answer.toString(), response.project());
+    }
+
+    private void assertNoSecrets(String chunk, StringBuilder answer) {
+        if (SecretPatternMatcher.containsSecret(chunk)
+                || SecretPatternMatcher.containsSecret(answer.toString() + chunk)) {
+            throw new SecretLeakException("Secret-like pattern detected in streamed LLM response");
+        }
     }
 }
