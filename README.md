@@ -75,15 +75,20 @@ git clone https://github.com/dbudnikau-personal/harbinger.git
 cd harbinger
 
 export ANTHROPIC_API_KEY=your_key_here
+export HARBINGER_API_KEY=choose_a_secret
 
 JAVA_HOME=/path/to/java21 mvn spring-boot:run
 ```
+
+**Authentication:** `/api/**` requires the `X-API-Key` header matching `HARBINGER_API_KEY`.
+If the variable is unset, all API requests return 401 (secure by default).
 
 Send a query:
 
 ```bash
 curl -X POST http://localhost:8080/api/v1/chat \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: $HARBINGER_API_KEY" \
   -d '{"message": "How does api-meter track token usage?"}'
 ```
 
@@ -102,6 +107,7 @@ Continue the conversation:
 ```bash
 curl -X POST http://localhost:8080/api/v1/chat \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: $HARBINGER_API_KEY" \
   -d '{"message": "What endpoints does it expose?", "conversationId": "abc-123"}'
 ```
 
